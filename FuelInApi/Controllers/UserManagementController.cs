@@ -41,6 +41,11 @@ namespace FuelInApi.Controllers
             data.PlateNumber = data.PlateNumber.Replace("-", "");
             data.PlateNumber = data.PlateNumber.ToUpper();
 
+            if (_userManagementInterface.CheckSystemUserExistByEmail(data.Email))
+            {
+                return NotFound("User already exists with this email");
+            }
+
             if (_userManagementInterface.CheckVehicleOwnerExistByPlateNumber(data.PlateNumber))
             {
                 return NotFound("Driver already exists in the system");

@@ -52,6 +52,13 @@ namespace FuelInApi.Repositories
             return false;
         }
 
+
+
+        public bool CheckSystemUserExistByEmail(string email)
+        {
+            return _context.SystemUsers.Any(s => s.Email.Equals(email));
+        }
+
         private bool Save()
         {
             var saved = _context.SaveChanges();

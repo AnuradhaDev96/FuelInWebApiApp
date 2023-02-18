@@ -10,6 +10,8 @@ namespace FuelInApi.Interfaces
 
         bool CheckVehicleOwnerExistByPlateNumber(string plateNumber);
 
+        bool CheckSystemUserExistByEmail(string email);
+
         bool CreateFuelInVehicle(FuelInVehicle vehicle);
 
         Task<int?> CreateSystemUser(SystemUser user);

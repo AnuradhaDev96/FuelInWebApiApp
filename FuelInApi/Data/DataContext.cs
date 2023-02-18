@@ -16,6 +16,8 @@ namespace FuelInApi.Data
         public DbSet<FuelInVehicleOwner> FuelInVehicleOwners { get; set; }
         public DbSet<FuelInVehicle> FuelInVehicles { get; set; }
 
+        public DbSet<FuelStation> FuelStations { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             #region Enum mapping

@@ -22,11 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
     <Folder Include="Helpers\" />
-    <Folder Include="Models\Dtos\" />
-    <Folder Include="Models\Models\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

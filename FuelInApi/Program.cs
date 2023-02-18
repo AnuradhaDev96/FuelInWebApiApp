@@ -1,4 +1,6 @@
 using FuelInApi.Data;
+using FuelInApi.Interfaces;
+using FuelInApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -27,7 +29,8 @@ builder.Services.AddControllers()
 // Add mapping profile
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-
+// Add dependency injections
+builder.Services.AddScoped<IUserManagementRepository, UserManagementRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

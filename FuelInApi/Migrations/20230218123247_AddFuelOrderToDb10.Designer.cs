@@ -4,6 +4,7 @@ using FuelInApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FuelInApi.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230218123247_AddFuelOrderToDb10")]
+    partial class AddFuelOrderToDb10
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,57 +146,6 @@ namespace FuelInApi.Migrations
                     b.ToTable("FuelStations");
                 });
 
-            modelBuilder.Entity("FuelInApi.Models.FuelTokenRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("FuelCollectedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FuelOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FuelStationId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("PaymentDoneOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RequestedFuelType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RequestedQuotaInLitres")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ScheduledFillingDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("TolerenceUntil")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DriverId");
-
-                    b.HasIndex("FuelOrderId");
-
-                    b.HasIndex("FuelStationId");
-
-                    b.ToTable("FuelTokenRequests");
-                });
-
             modelBuilder.Entity("FuelInApi.Models.SystemUser", b =>
                 {
                     b.Property<int>("Id")
@@ -280,49 +231,15 @@ namespace FuelInApi.Migrations
                     b.Navigation("ManagerUser");
                 });
 
-            modelBuilder.Entity("FuelInApi.Models.FuelTokenRequest", b =>
-                {
-                    b.HasOne("FuelInApi.Models.SystemUser", "Driver")
-                        .WithMany()
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FuelInApi.Models.FuelOrder", "FuelOrder")
-                        .WithMany("FuelTokenRequests")
-                        .HasForeignKey("FuelOrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FuelInApi.Models.FuelStation", "FuelStation")
-                        .WithMany("FuelTokenRequests")
-                        .HasForeignKey("FuelStationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Driver");
-
-                    b.Navigation("FuelOrder");
-
-                    b.Navigation("FuelStation");
-                });
-
             modelBuilder.Entity("FuelInApi.Models.FuelInVehicleOwner", b =>
                 {
                     b.Navigation("Vehicle")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("FuelInApi.Models.FuelOrder", b =>
-                {
-                    b.Navigation("FuelTokenRequests");
-                });
-
             modelBuilder.Entity("FuelInApi.Models.FuelStation", b =>
                 {
                     b.Navigation("FuelOrders");
-
-                    b.Navigation("FuelTokenRequests");
                 });
 #pragma warning restore 612, 618
         }

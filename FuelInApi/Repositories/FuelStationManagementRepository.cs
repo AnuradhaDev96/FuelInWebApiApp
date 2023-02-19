@@ -29,6 +29,12 @@ namespace FuelInApi.Repositories
             return true;
         }
 
+        public bool CreateFuelOrderByFuelStationId(FuelOrder fuelOrder)
+        {
+            _context.FuelOrders.Add(fuelOrder);
+            return Save();
+        }
+
         public bool CreateFuelStationByAdmin(FuelStation data)
         {
             _context.FuelStations.Add(data);
@@ -36,14 +42,50 @@ namespace FuelInApi.Repositories
 
         }
 
+        public bool CreateFuelTokenRequestByDriverId(FuelTokenRequest token)
+        {
+            _context.FuelTokenRequests.Add(token);
+            return Save();
+        }
+
+        public ICollection<FuelTokenRequest> FuelTokenRequestsByDriverId(int driverId)
+        {
+            return _context.FuelTokenRequests.Where(f => f.DriverId == driverId).ToList();
+        }
+
+        public FuelOrder? GetFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId)
+        {
+            return _context.FuelOrders.Where(fo => fo.FuelStationId == fillingStationId && fo.ExpectedDeliveryDate.Date == expectedFillingDate.Date).FirstOrDefault();
+        }
+
+        public ICollection<FuelOrder> GetFuelOrders()
+        {
+            return _context.FuelOrders.ToList();
+        }
+
+        public FuelStation? GetFuelStationById(int id)
+        {
+            return _context.FuelStations.Where(x => x.Id == id).FirstOrDefault();
+        }
+
         public FuelStation? GetFuelStationByLicenseId(string licenseId)
         {
             return _context.FuelStations.Where(f => f.LicenseId == licenseId).FirstOrDefault();
         }
 
+        public FuelStation? GetFuelStationByManagerId(int managerUserId)
+        {
+            return _context.FuelStations.Where(f => f.ManagerUserId == managerUserId).FirstOrDefault();
+        }
+
         public ICollection<FuelStation> GetFuelStations()
         {
             return _context.FuelStations.ToList();
+        }
+
+        public bool IsFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId)
+        {
+            return _context.FuelOrders.Any(fo => fo.FuelStationId == fillingStationId && fo.ExpectedDeliveryDate.Date == expectedFillingDate.Date);
         }
 
         public bool UpdateFuelStation(FuelStation data)

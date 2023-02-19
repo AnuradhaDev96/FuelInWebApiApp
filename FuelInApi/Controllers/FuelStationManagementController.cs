@@ -1,5 +1,7 @@
-﻿using FuelInApi.Interfaces;
+﻿using AutoMapper;
+using FuelInApi.Interfaces;
 using FuelInApi.Models;
+using FuelInApi.Models.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +13,14 @@ namespace FuelInApi.Controllers
     {
         private readonly IUserManagementRepository _userManagementInterface;
         private readonly IFuelStationManagementInterface _fuelStationManagementInterface;
+        private readonly IMapper _mapper;
 
-        public FuelStationManagementController(IUserManagementRepository userManagementInterface, IFuelStationManagementInterface fuelStationManagementInterface)
+        public FuelStationManagementController(IUserManagementRepository userManagementInterface, IFuelStationManagementInterface fuelStationManagementInterface,
+             IMapper mapper)
         {
             _userManagementInterface = userManagementInterface;
             _fuelStationManagementInterface = fuelStationManagementInterface;
+            _mapper = mapper;
         }
 
         [HttpPost("FuelStation")]
@@ -45,5 +50,128 @@ namespace FuelInApi.Controllers
 
             return Ok(data);
         }
+
+        [HttpPost("FuelStation/FuelOrder/{fuelStationManagerUserId}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> CreateFuelOrderRecord(int fuelStationManagerUserId, [FromBody] CreateFuelOrderDto data)
+        {
+            var fuelStationOfLoggedInManager = _fuelStationManagementInterface.GetFuelStationByManagerId(fuelStationManagerUserId);
+            
+            if (fuelStationOfLoggedInManager == null)
+                return NotFound("Fuel station cannot be found under given manager id");
+
+            var createData = _mapper.Map<FuelOrder>(data);
+
+            createData.FuelStationId = fuelStationOfLoggedInManager.Id;
+            createData.OrderStatus = Models.Enums.FuelOrderStatus.PaymentDone;
+
+            if (!_fuelStationManagementInterface.CreateFuelOrderByFuelStationId(createData))
+            {
+                return NotFound("Something went wrong while saving fuel order");
+            }
+            
+
+            return Ok("Fuel order created successfully under fuel station of logged in manager");
+        }
+
+        //[HttpGet("FuelStation/FuelOrder")]
+        //[ProducesResponseType(200, Type = (typeof(IEnumerable<FuelOrdersSummaryDto>)))]
+        //public IActionResult GetFuelOrdersSummary()
+        //{
+        //    var summaryList = new List<FuelOrdersSummaryDto>();
+
+        //    var fuelOrders = _fuelStationManagementInterface.GetFuelOrders();
+
+        //    foreach (var order in fuelOrders)
+        //    {
+        //        var fuelStationOfOrder = _fuelStationManagementInterface.GetFuelStationById(order.FuelStationId);
+
+        //        var newFuelOrderSummary = new FuelOrdersSummaryDto
+        //        {
+        //            Id = order.Id,
+        //            ExpectedDeliveryDate = order.ExpectedDeliveryDate,
+        //            OrderQuantityInLitres = order.OrderQuantityInLitres,
+        //            OrderStatus = order.OrderStatus,
+        //            FuelType = order.FuelType,
+
+        //            FuelStationId = order.FuelStationId,
+        //            LocalAuthority = fuelStationOfOrder.LocalAuthority,
+        //            Address = fuelStationOfOrder.Address,
+        //            PopulationDensity = fuelStationOfOrder.PopulationDensity,
+        //        };
+
+        //        summaryList.Add(newFuelOrderSummary);
+        //    }
+        //    summaryList.OrderByDescending(s => s.PopulationDensity);
+        //    return Ok(summaryList);
+        //}
+
+        [HttpGet("FuelStation/FuelOrder")]
+        [ProducesResponseType(200, Type = (typeof(IEnumerable<FuelOrder>)))]
+        public IActionResult GetFuelOrdersSummary()
+        {
+
+            var fuelOrders = _fuelStationManagementInterface.GetFuelOrders();
+
+            foreach (var order in fuelOrders)
+            {
+                var fuelStationOfOrder = _fuelStationManagementInterface.GetFuelStationById(order.FuelStationId);
+
+                order.FuelStation = fuelStationOfOrder;
+            }
+            return Ok(fuelOrders);
+        }
+
+
+        [HttpPost("FuelTokenRequest")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> CreateFuelTokenRequestRecord([FromBody] CreateFuelTokenDto data)
+        {
+            // Get fuel order for expected 
+            if (_fuelStationManagementInterface.IsFuelOrderExistForGivenExpectedFillingDateByStationId(
+                expectedFillingDate: data.ScheduledFillingDate, fillingStationId: data.FuelStationId))
+            {
+                var matchingFuelOrder = _fuelStationManagementInterface.GetFuelOrderExistForGivenExpectedFillingDateByStationId(
+                    expectedFillingDate: data.ScheduledFillingDate, fillingStationId: data.FuelStationId);
+
+                var createData = _mapper.Map<FuelTokenRequest>(data);
+
+                createData.TolerenceUntil = data.ScheduledFillingDate.AddHours(3);
+                createData.FuelOrderId = matchingFuelOrder.Id;
+
+                if (!_fuelStationManagementInterface.CreateFuelTokenRequestByDriverId(createData))
+                {
+                    return NotFound("Something went wrong while saving fuel token");
+                }
+
+
+                return Ok("Fuel token created successfully for driver id");
+            }
+            else {
+                return NotFound("No fuel order for given expected date");
+            }
+            
+        }
+
+        [HttpGet("FuelTokenRequest/{driverId}")]
+        [ProducesResponseType(200, Type = (typeof(IEnumerable<FuelTokenRequest>)))]
+        public IActionResult GetFuelTokenRequestsByDriverId(int driverId)
+        {
+
+            var requests = _fuelStationManagementInterface.FuelTokenRequestsByDriverId(driverId);
+
+            //foreach (var order in fuelOrders)
+            //{
+            //    var fuelStationOfOrder = _fuelStationManagementInterface.GetFuelStationById(order.FuelStationId);
+
+            //    order.FuelStation = fuelStationOfOrder;
+            //}
+            return Ok(requests);
+        }
+
     }
 }

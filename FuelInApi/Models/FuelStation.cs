@@ -18,5 +18,9 @@ namespace FuelInApi.Models
         public int? ManagerUserId { get; set; }
         public SystemUser? ManagerUser { get; set; }
 
+        public ICollection<FuelOrder> FuelOrders { get; set; }
+
+        public ICollection<FuelTokenRequest> FuelTokenRequests { get; set; }
+
     }
 }

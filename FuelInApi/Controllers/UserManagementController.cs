@@ -11,10 +11,12 @@ namespace FuelInApi.Controllers
     public class UserManagementController : ControllerBase
     {
         private readonly IUserManagementRepository _userManagementInterface;
+        private readonly IFuelStationManagementInterface _fuelStationManagementInterface;
 
-        public UserManagementController(IUserManagementRepository userManagementInterface)
+        public UserManagementController(IUserManagementRepository userManagementInterface, IFuelStationManagementInterface fuelStationManagementInterface)
         {
             _userManagementInterface = userManagementInterface;
+            _fuelStationManagementInterface = fuelStationManagementInterface;
         }
 
         [HttpGet("Users/GetUser/{email}")]
@@ -31,6 +33,7 @@ namespace FuelInApi.Controllers
 
         [HttpPost("FuelInVehicleOwner")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> CreateFuelInVehicleOwnerRecord([FromBody] CreateFuelInVehicleOwnerDto data)
         {
@@ -97,6 +100,55 @@ namespace FuelInApi.Controllers
             }
 
             return Ok("User registered successfully");
+        }
+
+        [HttpPost("FuelStationManager")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> CreateFuelStationManagerRecord([FromBody] CreateFuelStationManagerDto data)
+        {
+            data.LicenseId = data.LicenseId.Trim().Replace(" ", "");
+            data.LicenseId = data.LicenseId.ToUpper();
+
+            if (!_fuelStationManagementInterface.CheckFuelStationExistByLicenseId(data.LicenseId))
+            {
+                return NotFound("Fuel station does not exist for the given license id");
+            }
+
+            if (_fuelStationManagementInterface.CheckManagerExistForFuelStationByLicenseId(data.LicenseId))
+            {
+                return NotFound("Manager already exist. Only 1 manager can exist for fuel station");
+            }
+
+            var newManager = new SystemUser
+            {
+                Email = data.Email,
+                FullName = data.FullName,
+                Role = Models.Enums.UserRole.FuelStationManager
+            };
+
+            var createdUserId = await _userManagementInterface.CreateSystemUser(newManager);
+
+            if (createdUserId == null || createdUserId <= 0)
+            {
+                return NotFound("User cannot be created");
+            }
+
+            // Update fuel station with new manager id
+            var existingFuelStation = _fuelStationManagementInterface.GetFuelStationByLicenseId(data.LicenseId);
+
+            if (existingFuelStation == null)
+                return NotFound("Fuel station not found while updating manager");
+
+            existingFuelStation.ManagerUserId = createdUserId;
+
+            if (!_fuelStationManagementInterface.UpdateFuelStation(existingFuelStation))
+            {
+                return NotFound("Something went wrong while updating manager of fuel station");
+            }
+
+            return Ok("User created successfully");
         }
     }
 }

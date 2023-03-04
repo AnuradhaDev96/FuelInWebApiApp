@@ -31,5 +31,9 @@ namespace FuelInApi.Interfaces
 
         bool IsFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId);
         FuelOrder? GetFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId);
+
+        FuelOrder? GetFuelOrderById(int id);
+
+        bool UpdateFuelOrder(FuelOrder fuelOrder);
     }
 }

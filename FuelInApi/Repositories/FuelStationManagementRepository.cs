@@ -53,6 +53,11 @@ namespace FuelInApi.Repositories
             return _context.FuelTokenRequests.Where(f => f.DriverId == driverId).ToList();
         }
 
+        public FuelOrder? GetFuelOrderById(int id)
+        {
+            return _context.FuelOrders.Where(f => f.Id == id).FirstOrDefault();
+        }
+
         public FuelOrder? GetFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId)
         {
             return _context.FuelOrders.Where(fo => fo.FuelStationId == fillingStationId && fo.ExpectedDeliveryDate.Date == expectedFillingDate.Date).FirstOrDefault();
@@ -86,6 +91,12 @@ namespace FuelInApi.Repositories
         public bool IsFuelOrderExistForGivenExpectedFillingDateByStationId(DateTime expectedFillingDate, int fillingStationId)
         {
             return _context.FuelOrders.Any(fo => fo.FuelStationId == fillingStationId && fo.ExpectedDeliveryDate.Date == expectedFillingDate.Date);
+        }
+
+        public bool UpdateFuelOrder(FuelOrder fuelOrder)
+        {
+            _context.FuelOrders.Update(fuelOrder);
+            return Save();
         }
 
         public bool UpdateFuelStation(FuelStation data)

@@ -11,14 +11,14 @@ namespace FuelInApi.Controllers
     [ApiController]
     public class FuelStationManagementController : ControllerBase
     {
-        private readonly IUserManagementRepository _userManagementInterface;
+        private readonly IMailService _mailService;
         private readonly IFuelStationManagementInterface _fuelStationManagementInterface;
         private readonly IMapper _mapper;
 
-        public FuelStationManagementController(IUserManagementRepository userManagementInterface, IFuelStationManagementInterface fuelStationManagementInterface,
+        public FuelStationManagementController(IMailService mailService, IFuelStationManagementInterface fuelStationManagementInterface,
              IMapper mapper)
         {
-            _userManagementInterface = userManagementInterface;
+            _mailService = mailService;
             _fuelStationManagementInterface = fuelStationManagementInterface;
             _mapper = mapper;
         }
@@ -171,6 +171,41 @@ namespace FuelInApi.Controllers
             //    order.FuelStation = fuelStationOfOrder;
             //}
             return Ok(requests);
+        }
+
+        [HttpPut("FuelOrder/{orderId}")]
+        public async Task<IActionResult> ConfirmFuelOrderByManager(int orderId)
+        {
+            try
+            {
+                var fuelOrder = _fuelStationManagementInterface.GetFuelOrderById(orderId);
+
+                if (fuelOrder == null)
+                    return NotFound("Fuel order cannot be found");
+
+                fuelOrder.OrderStatus = Models.Enums.FuelOrderStatus.DeliveryConfirmed;
+
+                if (!_fuelStationManagementInterface.UpdateFuelOrder(fuelOrder))
+                {
+                    return NotFound("Fuel order cannot be updated");
+                }
+
+                var newMail = new MailRequestDto
+                {
+                    ToEmail = "anusampath9470@gmail.com",
+                    Body = "The fuel order of your token is confirmed.",
+                    Subject = "Order confirmation to customers"
+                };
+
+                await _mailService.SendEmailAsync(newMail);
+
+                return Ok("Fuel order confirmed and mail sent to customers");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+            
         }
 
     }

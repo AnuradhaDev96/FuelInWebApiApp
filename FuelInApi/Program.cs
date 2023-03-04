@@ -1,8 +1,10 @@
 using FuelInApi.Data;
 using FuelInApi.Interfaces;
+using FuelInApi.Models.Dtos;
 using FuelInApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,9 +31,12 @@ builder.Services.AddControllers()
 // Add mapping profile
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+builder.Services.Configure<MailSettingsDto>(builder.Configuration.GetSection("MailSettings"));
+
 // Add dependency injections
 builder.Services.AddScoped<IUserManagementRepository, UserManagementRepository>();
 builder.Services.AddScoped<IFuelStationManagementInterface, FuelStationManagementRepository>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
